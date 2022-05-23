@@ -1,4 +1,6 @@
 ﻿@page "/"
+@using Microsoft.AspNetCore.WebUtilities
+@inject NavigationManager NavManager;
 
 <PageTitle>URL Shortener</PageTitle>
 
@@ -10,8 +12,35 @@
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css">
     </head>
     <body>
+@if(hasError) {
+        <div class="row" style="background: #ff5050;">
+            <div class="col">
+                <p style="color: rgb(255,255,255);text-align: center;margin-top: 16px;margin-bottom: 16px;"><strong>An error occurred! </strong>@errorMessage</p>
+            </div>
+        </div>
+}
         <h1 style="text-align: center;padding-top: 44px;">.NET URL Shortener</h1>
         <p style="text-align: center;color: rgb(88,88,88);">A simple .NET project that shortens URLs and counts visits and referrals</p>
         <h1 class="text-center" style="font-size: 112px;"><a href="https://rbdev.me/gh-urlshortener?ref=mainpage" style="color: rgb(0,0,0);"><i class="fab fa-github" style="color: rgb(0,0,0);"></i></a></h1>
         </body>
 </html>
+
+@code {
+    public bool hasError = false;
+    public string errorMessage;
+
+
+    protected override void OnInitialized()
+    {
+        if (QueryHelpers.ParseQuery(NavManager.ToAbsoluteUri(NavManager.Uri).Query).TryGetValue("error", out var error))
+        {
+            switch(error.ToString().ToLower())
+            {
+                case "notfound":
+                    errorMessage = "This redirect was not found! Double-check the link and try again.";
+                    hasError = true;
+                    break;
+            }
+        }
+    }
+}

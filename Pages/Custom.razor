@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor httpContextAccessor;
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Redirecting..</PageTitle>
 
 <style>
     body {
@@ -15,12 +15,9 @@
 @code {
     [Parameter]
     public string URLParameter { get; set; }
-    public bool InfoShown = false;
-    public string Referrer { get; set; }
 
     protected override void OnInitialized()
     {
-
         using (var context = new Data.DatabaseContext())
         {
             // Redirection
@@ -31,11 +28,11 @@
                 redirect.Visits++;
 
                 // Referrals (to only be done if redirect is true)
-                if (QueryHelpers.ParseQuery(navManager.ToAbsoluteUri(navManager.Uri).Query).TryGetValue("ref", out var Referrer)) // example.com/redirect?ref=referrer
+                if (QueryHelpers.ParseQuery(navManager.ToAbsoluteUri(navManager.Uri).Query).TryGetValue("ref", out var referrer)) // example.com/redirect?ref=referrer
                 {
-                    if (Referrer.ToString() != "") // No blanks for ?ref=
+                    if (referrer.ToString() != "") // No blanks for ?ref=
                     {
-                        var referral = context.Referrals.FirstOrDefault(e => e.Name.ToLower() == Referrer.ToString());
+                        var referral = context.Referrals.FirstOrDefault(e => e.Name.ToLower() == referrer.ToString());
 
                         if (referral != null)
                         {
@@ -43,7 +40,7 @@
                         }
                         else
                         {
-                            context.Referrals.Add(new Data.Models.Referrals { Name = Referrer.ToString().ToLower(), Visits = 1 }); // If it doesn't exist, add it
+                            context.Referrals.Add(new Data.Models.Referrals { Name = referrer.ToString().ToLower(), Visits = 1 }); // If it doesn't exist, add it
                         }
                     }
                 }
@@ -52,11 +49,10 @@
             }
             else
             {
-                httpContextAccessor.HttpContext.Response.Redirect(navManager.BaseUri);  // If it doesn't exist, return to the homepage
+                httpContextAccessor.HttpContext.Response.Redirect(navManager.BaseUri + "?error=notfound");  // If it doesn't exist, return to the homepage
             }
 
             context.SaveChanges();
         }
     }
-
 }
